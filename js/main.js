@@ -1,3 +1,9 @@
+//to do: 
+//Make dealer draw if they can, even when player holds.
+//Make dealer auto-win if they get blackjack
+//make player auto-win if they get blackjack
+//add winnings to local storage
+
 
 //Initial Values
 
@@ -61,11 +67,11 @@ function cardToValue(card){
 function adjustWinnings(){
     if (loss === true){
       winnings -= Number(bet)
-      document.querySelector('.winnings').innerText = `Winnings: ${winnings}`
+      document.querySelector('.winnings').innerText = `Winnings: $${winnings}`
     }
     else {
       winnings += Number(bet)
-      document.querySelector('.winnings').innerText = `Winnings: ${winnings}`
+      document.querySelector('.winnings').innerText = `Winnings: $${winnings}`
     }
 }
 
