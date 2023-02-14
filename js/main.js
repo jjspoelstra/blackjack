@@ -8,42 +8,124 @@
 //dealer will draw on 17 when they have a lower score
 
 
-  //Initial Values
+//objects
 
-let playerCardArray = []    //for drawn cards
-let botCardEstArray = []
-let botRealArray = []
-let score = 0         //display value of drawn cards
-let botRealScore = 0
-let botEstScore = 0
-let deckId = ''       //to use same deck throughout game
-let hits = 0          //how many times the pplayer has asked for another card
-let aceLow = true     //default value, aces count as 1
-let changingNum       //variable to allow aces to change between 1 and 11
-let dealt = false     //default to false, changes to true once dealt
-let loss = false      //check if player lost the game
-let bet = 0           //initialize bet variable
-let botDraw = true    //Boolean to allow bot to draw a card depending on score
-let winnings = +localStorage.getItem('winnings')
+class Scores {  //scores for user and dealer established here
+  constructor(){
+    this.cardArray = []   //for drawn cards
+  }
+  get score(){
+    return this.cardArray.reduce((accum, card) => accum + card, 0)  //reduce array to a score
+  }
+  changeAce(){
 
-if (dealt === false){
-  adjustWinnings()
+  }
 }
 
-//Initial API Fetching
-//Grabbing the deck id to use for the rest of the game
+class Dealer extends Scores{  //give dealer their own properties and methods in addition to the scores
+  constructor(){
+    super()
+    this.draw = true                               //boolean to allow bot to draw a card depending on score
+    this.estimatedArray = this.cardArray.shift()   //removes invisible card from array   
+  }
+  get estimatedScore(){ //displays value of dealer's shown cards
+    return this.estimatedArray.reduce((accum,card) => accum + card, 0)  
+  }
+}
 
-const url = 'https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1'
+class Player extends Scores{  //give player their own properties and methods in addition to the scores
+  constructor(){
+    super()
+    this.hits = 0                                        //how many times the player has asked for another card
+    this.bet //document.querySelector('.bet').value      //how much the player has bet
+    this.winnings = +localStorage.getItem('winnings')    //how much the player has won/lost in the past
+  }
+}
 
-  fetch(url)
-      .then(res => res.json()) // parse response as JSON
-      .then(data => {
-        console.log(data)
-        deckId = data.deck_id
-      })
-      .catch(err => {
-          console.log(`error ${err}`)
-      });
+class GameEngine { //establishes baseline rules for the game state
+  constructor() {
+    this.deckId = '' 
+    this.dealt = false
+  }
+  updateScore(){
+    document.querySelector('.handScore').innerText = user.score
+    document.querySelector('.botEstScore').innerText = `Minimum ${dealer.estimatedScore}`
+  }
+  
+}
+
+const gameState = new GameEngine()
+const user = new Player()
+const dealer = new Dealer()
+     
+
+fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1' )   //Initial API Fetching, deck ID to use for remainder of game
+    .then(res => res.json()) // parse response as JSON
+    .then(data => {
+      console.log(data)
+      gameState.deckId = data.deck_id
+    })
+    .catch(err => {
+        console.log(`error ${err}`)
+    });
+            
+ 
+
+//next up
+
+document.querySelector('.aceToggle').addEventListener('click', changeAce) //Change Ace Value 
+    //change whether ace is equal to 1 or 11. Default value is TRUE
+function changeAce(){
+  if (aceLow){
+    aceLow = false
+    document.querySelector('.aceToggle').innerText = 'Ace is High'
+    changingNum = playerCardArray.indexOf(1)
+    playerCardArray[changingNum] = 11
+    updateScore()
+    checkLoss()
+  }
+  else{
+    aceLow = true
+    document.querySelector('.aceToggle').innerText = 'Ace is Low'
+    changingNum = playerCardArray.indexOf(11)
+    playerCardArray[changingNum] = 1
+    updateScore()
+    checkLoss()
+  }
+    
+}
+
+let aceLow = true     //default value, aces count as 1
+let changingNum       //variable to allow aces to change between 1 and 11
+            
+//CHANGED VARIABLES
+    
+//botRealScore ---> dealer.score
+//botRealArray ---> dealer.cardArray
+//botEstScore ---> dealer.estimatedScore
+//botCardEstArray ---> dealer.estimatedArray
+//botDraw ---> dealer.draw
+
+
+//FIX LATER
+
+// if (gameState.dealt === false){
+//   adjustWinnings()
+// }
+
+// adjustWinnings(){
+//   if (loss === true){
+//     winnings -= Number(bet)
+//     document.querySelector('.winnings').innerText = `Winnings: $${winnings}`
+//     localStorage.setItem('winnings', winnings.toString()) 
+//   }
+//   else {
+//     winnings += Number(bet)
+//     document.querySelector('.winnings').innerText = `Winnings: $${winnings}`
+//     localStorage.setItem('winnings', winnings.toString()) 
+//   }
+// }
+
 
 
 
@@ -68,27 +150,9 @@ function cardToValue(card){
 }
 
   //update all-time bet scores
-function adjustWinnings(){
-    if (loss === true){
-      winnings -= Number(bet)
-      document.querySelector('.winnings').innerText = `Winnings: $${winnings}`
-      localStorage.setItem('winnings', winnings.toString()) 
-    }
-    else {
-      winnings += Number(bet)
-      document.querySelector('.winnings').innerText = `Winnings: $${winnings}`
-      localStorage.setItem('winnings', winnings.toString()) 
-    }
-}
 
-    // shorthand to update the score
-function updateScore(){
-  score = playerCardArray.reduce((accum, card) => accum + card, 0)
-        document.querySelector('.handScore').innerText = score
-  botEstScore = botCardEstArray.reduce((accum, card) => accum + card, 1)
-        document.querySelector('.botEstScore').innerText = `Minimum ${botEstScore}`
-    botRealScore = botRealArray.reduce((accum, card) => accum + card, 0)
-}
+
+
 
     //shorthand to check for a loss
 function checkLoss(){
@@ -148,7 +212,7 @@ function showDealerCards(){
 
 document.querySelector('#deal').addEventListener('click', dealCards)      //Initial deal 
 document.querySelector('.hit').addEventListener('click', getHit)          //Hit
-document.querySelector('.aceToggle').addEventListener('click', changeAce) //Change Ace Value 
+
 document.querySelector('#restart').addEventListener('click', playAgain)   //Reset game
 document.querySelector('.hold').addEventListener('click', compareValues)  //Player stops draws, compares score
 
@@ -156,26 +220,6 @@ document.querySelector('.hold').addEventListener('click', compareValues)  //Play
 //eventlistener functions
 
 
-    //change whether ace is equal to 1 or 11. Default value is TRUE
-function changeAce(){
-  if (aceLow){
-    aceLow = false
-    document.querySelector('.aceToggle').innerText = 'Ace is High'
-    changingNum = playerCardArray.indexOf(1)
-    playerCardArray[changingNum] = 11
-    updateScore()
-    checkLoss()
-  }
-  else{
-    aceLow = true
-    document.querySelector('.aceToggle').innerText = 'Ace is Low'
-    changingNum = playerCardArray.indexOf(11)
-    playerCardArray[changingNum] = 1
-    updateScore()
-    checkLoss()
-  }
-    
-}
 
 
     //Give player two cards to begin with               
