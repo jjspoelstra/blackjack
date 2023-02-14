@@ -1,12 +1,11 @@
 //to do: 
-//Make dealer draw if they can, even when player holds.
-//Make dealer auto-win if they get blackjack
-//make player auto-win if they get blackjack
-//add winnings to local storage
+
+//bot 1st card will sometimes not return to hidden on restart
+//bot will not auto-lose when they bust
 
 
-//Initial Values
 
+  //Initial Values
 
 let playerCardArray = []    //for drawn cards
 let botCardEstArray = []
@@ -22,9 +21,11 @@ let dealt = false     //default to false, changes to true once dealt
 let loss = false      //check if player lost the game
 let bet = 0           //initialize bet variable
 let botDraw = true    //Boolean to allow bot to draw a card depending on score
-let winnings = 0
+let winnings = +localStorage.getItem('winnings')
 
-
+if (dealt === false){
+  adjustWinnings()
+}
 
 //Initial API Fetching
 //Grabbing the deck id to use for the rest of the game
@@ -68,10 +69,12 @@ function adjustWinnings(){
     if (loss === true){
       winnings -= Number(bet)
       document.querySelector('.winnings').innerText = `Winnings: $${winnings}`
+      localStorage.setItem('winnings', winnings.toString()) 
     }
     else {
       winnings += Number(bet)
       document.querySelector('.winnings').innerText = `Winnings: $${winnings}`
+      localStorage.setItem('winnings', winnings.toString()) 
     }
 }
 
@@ -86,10 +89,17 @@ function updateScore(){
 
     //shorthand to check for a loss
 function checkLoss(){
-  if (score > 21){
+  if (score > 21 || ((botRealScore === 21 || (botRealArray.includes(1) && botRealScore + 10 === 21)) && score != 21)){
     document.querySelector('.result').innerText = `You lost $${bet}.`
     loss = true
     adjustWinnings()
+    showDealerCards()
+    if (botRealArray.includes(1) && botRealScore + 10 === 21){
+      document.querySelector('.botEstScore').innerText = +botRealScore + 10
+    }
+    else{
+      document.querySelector('.botEstScore').innerText = botRealScore
+    }
   }
   if (loss === true){
     let element = document.getElementById('restart')
@@ -97,14 +107,16 @@ function checkLoss(){
   }
 }
 
+  //places bet into the pot
 function initializeBet(){
   bet = document.querySelector('.bet').value
   document.querySelector('.wagered').innerText = `Bet: $${bet}`
   document.querySelector('.bet').value = ''
 }
 
+  //this checks if the dealer is able to draw another card
 function robotCheckIfDraw(){
-  if (botRealScore <= 17 && (botRealArray.includes('1')) && botRealScore + 10 >= 17){
+  if (botRealScore <= 17 && (botRealArray.includes(1)) && botRealScore + 10 >= 17){
     botDraw = false
     dealerDraw()
   }
@@ -117,8 +129,14 @@ function robotCheckIfDraw(){
   }
 }
 
+  //this tells the player if the dealer drew
 function dealerDraw() {
   document.querySelector('.botDraw').innerText = 'Dealer did not draw'
+}
+
+  //shows the hidden card after the hand is over
+function showDealerCards(){
+  document.getElementById('botCardOne').classList.toggle('hidden')
 }
 
 
@@ -158,11 +176,6 @@ function changeAce(){
 
 
     //Give player two cards to begin with               
-
-
-
-    //want to deal to player first, then bot, then player, then bot. We can see the bot's second card only. Dealer must draw on 16 and less, stand on 17 or up. 
-
 function dealCards(){
   const url = `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=4`
 
@@ -183,6 +196,7 @@ function dealCards(){
             playerCardArray.push(cardToValue(data.cards[2].value))
 
           //bot updates
+            document.querySelector('#botCardOne').src = data.cards[1].image
             document.querySelector('#botCardTwo').src = data.cards[3].image
             botRealArray.push(cardToValue(data.cards[1].value))
             botRealArray.push(cardToValue(data.cards[3].value))
@@ -191,6 +205,10 @@ function dealCards(){
           //update values
             updateScore()
             checkLoss()
+            if(score === 21){
+              compareValues()
+              showDealerCards()
+            }
             let element = document.getElementById('deal')
             element.classList.toggle('hidden')
         }
@@ -234,6 +252,7 @@ function getHit(){
                   //update values
                 updateScore()
                 checkLoss()
+                robotCheckIfDraw()
 
               }
               else if (hits === 2 && score <= 21){
@@ -252,6 +271,7 @@ function getHit(){
                   //update values
                 updateScore()
                 checkLoss()
+                robotCheckIfDraw()
               }
               else if (hits === 3 && score <=21){
 
@@ -269,6 +289,7 @@ function getHit(){
                   //update values
                 updateScore()
                 checkLoss()
+                robotCheckIfDraw()
               }   
         } else {
               document.querySelector('.result').innerText = 'Deal first!'    //reset text to blank
@@ -283,35 +304,75 @@ function getHit(){
 
 //compare values, determine who won the bet
 
-///////*** NEED TO CODE ********* IF PLAYER HOLDS AND BOT IS STILL LESS THAN 17, BOT NEEDS TO DRAW UNTIL IT BUSTS OR HITS 17
+
 
 function compareValues(){
-  if (botRealScore > 21){
-    document.querySelector('.result').innerText = `You won $${bet}.`
-    loss = false
-    adjustWinnings()
-    let element = document.getElementById('restart')
-    element.classList.toggle('hidden')
-  }
-  else if (botRealScore > score){
-    document.querySelector('.result').innerText = `You lost $${bet}.`
-    loss = true
-    adjustWinnings()
-    let element = document.getElementById('restart')
-    element.classList.toggle('hidden')
-  }
-  else if (botRealScore === score){
-    document.querySelector('.result').innerText = `You tied.`
-    let element = document.getElementById('restart')
-    element.classList.toggle('hidden')
+  if (dealt === false){
+    document.querySelector('.result').innerText = 'Deal first!'
   }
   else {
-    document.querySelector('.result').innerText = `You won $${bet}.`
-    lostt = false 
-    adjustWinnings()
-    let element = document.getElementById('restart')
-    element.classList.toggle('hidden')
+    if (botRealScore > 21){
+      document.querySelector('.result').innerText = `You won $${bet}.`
+      loss = false
+      adjustWinnings()
+      document.querySelector('.botEstScore').innerText = botRealScore
+      showDealerCards()
+      let element = document.getElementById('restart')
+      element.classList.toggle('hidden')
+    }
+    else if (botRealScore > score){
+      document.querySelector('.result').innerText = `You lost $${bet}.`
+      loss = true
+      adjustWinnings()
+      document.querySelector('.botEstScore').innerText = botRealScore
+      showDealerCards()
+      let element = document.getElementById('restart')
+      element.classList.toggle('hidden')
+    }
+    else if (botRealScore === score && botDraw === false){
+      document.querySelector('.result').innerText = `You tied.`
+      document.querySelector('.botEstScore').innerText = botRealScore
+      showDealerCards()
+      let element = document.getElementById('restart')
+      element.classList.toggle('hidden')
+    }
+    else if ((botRealScore < score || botEstScore === score) && botDraw === true && score !=21){
+      const botUrl = `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`
+  
+       fetch(botUrl)
+        .then(res => res.json()) // parse response as JSON
+        .then(data => {
+            if (botRealArray.length === 2){
+              document.querySelector('#botCardThree').src = data.cards[0].image
+            }
+            else if(botRealArray.length === 3){
+              document.querySelector('#botCardFour').src = data.cards[0].image
+            }
+            botRealArray.push(cardToValue(data.cards[0].value))
+            botCardEstArray.push(cardToValue(data.cards[0].value)) 
+            updateScore()
+            checkLoss()
+            compareValues()
+            document.querySelector('.botEstScore').innerText = botRealScore
+            showDealerCards()
+        })
+        .catch(err => {
+          console.log(`error ${err}`)
+      })
+    }
+  
+    else{
+      document.querySelector('.result').innerText = `You won $${bet}.`
+      loss = false 
+      adjustWinnings()
+      document.querySelector('.botEstScore').innerText = botRealScore
+      showDealerCards()
+      let element = document.getElementById('restart')
+      element.classList.toggle('hidden')
+    }
+      
   }
+  
   
 }
 
@@ -336,7 +397,8 @@ function playAgain(){
   loss = false      //check if player lost the game
   bet = 0
   botDraw = true
-  checkLoss()       //toggle start button off
+        //toggle start button off
+  showDealerCards()
   document.querySelector('.result').innerText = ''    //reset text to blank
   document.querySelector('#cardOne').src = ''
   document.querySelector('#cardTwo').src = ''
@@ -346,15 +408,32 @@ function playAgain(){
 
   document.querySelector('.botEstScore').innerText = ''
   document.querySelector('.botDraw').innerText = ''
+  document.querySelector('#botCardOne').src = ''
   document.querySelector('#botCardTwo').src = ''
   document.querySelector('#botCardThree').src = ''
   document.querySelector('#botCardFour').src = ''
+ 
 
   let element = document.getElementById('restart')
   element.classList.toggle('hidden')
   let dealhide = document.getElementById('deal')
   dealhide.classList.toggle('hidden')
   document.querySelector('.wagered').innerText = 'Bet:'
+
+  
+    //reshuffle the same deck
+  fetch( `https://deckofcardsapi.com/api/deck/${deckId}/shuffle/`)
+      .then(res => res.json()) // parse response as JSON
+      .then(data => {
+        console.log(data)
+        deckId = data.deck_id
+      })
+      .catch(err => {
+          console.log(`error ${err}`)
+      });
+ 
+
+
 }
 
 
