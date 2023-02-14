@@ -2,7 +2,10 @@
 
 //bot 1st card will sometimes not return to hidden on restart
 //bot will not auto-lose when they bust
-
+//player can click hold over and over and bet will continue reapplying
+//holding and coming up with a tie results in a player win
+//aces confuse dealer, will draw and then lose on 7-A-A because it counts as 9 instead of 19.
+//dealer will draw on 17 when they have a lower score
 
 
   //Initial Values
@@ -354,7 +357,7 @@ function compareValues(){
             checkLoss()
             compareValues()
             document.querySelector('.botEstScore').innerText = botRealScore
-            showDealerCards()
+            
         })
         .catch(err => {
           console.log(`error ${err}`)
