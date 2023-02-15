@@ -7,6 +7,8 @@
 //aces confuse dealer, will draw and then lose on 7-A-A because it counts as 9 instead of 19.
 //dealer will draw on 17 when they have a lower score
 
+//eventListeners
+
 
 //objects
 
@@ -26,12 +28,42 @@ class Dealer extends Scores{  //give dealer their own properties and methods in 
   constructor(){
     super()
     this.draw = true                               //boolean to allow bot to draw a card depending on score
-    this.estimatedArray = this.cardArray.shift()   //removes invisible card from array   
   }
   get estimatedScore(){ //displays value of dealer's shown cards
-    return this.estimatedArray.reduce((accum,card) => accum + card, 0)  
+    return this.cardArray.slice(1).reduce((accum,card) => accum + card, 0)  
   }
+  get estimatedArray() { //removes invisible card from array
+    this.cardArray.shift()
+    }   
 }
+
+//ADD TO DEALER OBJECTS 
+
+  // //this tells the player if the dealer drew
+  // function dealerDraw() {
+  //   document.querySelector('.botDraw').innerText = 'Dealer did not draw'
+  // }
+
+    //this checks if the dealer is able to draw another card
+// function robotCheckIfDraw(){
+//   if (botRealScore <= 17 && (botRealArray.includes(1)) && botRealScore + 10 >= 17){
+//     botDraw = false
+//     dealerDraw()
+//   }
+//   else if (botRealScore >= 17){
+//     botDraw = false
+//     dealerDraw()
+//   }
+//   else {
+//     botDraw = true
+//   }
+// }
+  
+  //   //shows the hidden card after the hand is over
+  // function showDealerCards(){
+  //   document.getElementById('botCardOne').classList.toggle('hidden')
+  // }
+
 
 class Player extends Scores{  //give player their own properties and methods in addition to the scores
   constructor(){
@@ -42,61 +74,109 @@ class Player extends Scores{  //give player their own properties and methods in 
   }
 }
 
+   
+
 class GameEngine { //establishes baseline rules for the game state
   constructor() {
-    this.deckId = '' 
+    this.deckId 
     this.dealt = false
+    this.aceValue = 1
+    this.dealElement = document.getElementById('deal')
+  }
+  cardToValue(card){ //Make face cards have a numeric value
+  if (card === 'ACE'){
+      return this.aceValue === 1 ? 1 : 11
+  } else if (card === 'KING' || card === 'QUEEN' || card === 'JACK'){
+      return 10
+    } else {
+      return Number(card)
+      }
   }
   updateScore(){
     document.querySelector('.handScore').innerText = user.score
     document.querySelector('.botEstScore').innerText = `Minimum ${dealer.estimatedScore}`
+    // if(user.score === 21){
+    //   compareValues()
+    //   showDealerCards()
+    // }
   }
-  
+  changeAce(){ //change whether ace is equal to 1 or 11. Default value is TRUE
+    if (this.aceValue = 1){
+      this.aceValue = 11
+      document.querySelector('.aceToggle').innerText = 'Ace is High'
+      user.cardArray[user.cardArray.indexOf(1)] = 11
+      gameState.updateScore()
+    }
+    else {
+      this.aceValue = 1
+      document.querySelector('.aceToggle').innerText = 'Ace is Low'
+      user.cardArray[user.cardArray.indexOf(11)] = 1
+      gameState.updateScore()
+    }
+  }
+  dealCards(){
+    fetch(`https://deckofcardsapi.com/api/deck/${gameState.deckId}/draw/?count=4`)
+      .then(res => res.json()) // parse response as JSON
+      .then(data => {
+        console.log(data)
+        if (gameState.dealt === false){
+          //initializers
+            gameState.dealt = true
+            document.querySelector('.result').innerText = ''    //reset text to blank
+          //player updates
+            document.querySelector('#cardOne').src = data.cards[0].image
+            document.querySelector('#cardTwo').src = data.cards[2].image
+            user.cardArray.push(gameState.cardToValue(data.cards[0].value))
+            user.cardArray.push(gameState.cardToValue(data.cards[2].value))
+          //bot updates
+            document.querySelector('#botCardOne').src = data.cards[1].image
+            document.querySelector('#botCardTwo').src = data.cards[3].image
+            dealer.cardArray.push(gameState.cardToValue(data.cards[1].value))
+            dealer.cardArray.push(gameState.cardToValue(data.cards[3].value))
+          //update values
+            gameState.updateScore()
+            gameState.dealElement.classList.toggle('hidden')
+        }
+      })
+      .catch(err => {
+      console.log(`error ${err}`)
+      })
+  }
 }
-
-const gameState = new GameEngine()
-const user = new Player()
-const dealer = new Dealer()
-     
 
 fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1' )   //Initial API Fetching, deck ID to use for remainder of game
     .then(res => res.json()) // parse response as JSON
     .then(data => {
-      console.log(data)
       gameState.deckId = data.deck_id
     })
     .catch(err => {
         console.log(`error ${err}`)
     });
+
+const gameState = new GameEngine()
+const user = new Player()
+const dealer = new Dealer()
+
+
+//event listeners
+document.querySelector('#deal').addEventListener('click', gameState.dealCards)      //Initial deal
+document.querySelector('.aceToggle').addEventListener('click', gameState.changeAce) //change ace value
+
+ 
+document.querySelector('.hit').addEventListener('click', getHit)          //Hit
+document.querySelector('#restart').addEventListener('click', playAgain)   //Reset game
+document.querySelector('.hold').addEventListener('click', compareValues)  //Player stops draws, compares score
+
+     
+
+
             
  
 
 //next up
 
-document.querySelector('.aceToggle').addEventListener('click', changeAce) //Change Ace Value 
-    //change whether ace is equal to 1 or 11. Default value is TRUE
-function changeAce(){
-  if (aceLow){
-    aceLow = false
-    document.querySelector('.aceToggle').innerText = 'Ace is High'
-    changingNum = playerCardArray.indexOf(1)
-    playerCardArray[changingNum] = 11
-    updateScore()
-    checkLoss()
-  }
-  else{
-    aceLow = true
-    document.querySelector('.aceToggle').innerText = 'Ace is Low'
-    changingNum = playerCardArray.indexOf(11)
-    playerCardArray[changingNum] = 1
-    updateScore()
-    checkLoss()
-  }
-    
-}
 
-let aceLow = true     //default value, aces count as 1
-let changingNum       //variable to allow aces to change between 1 and 11
+
             
 //CHANGED VARIABLES
     
@@ -108,10 +188,6 @@ let changingNum       //variable to allow aces to change between 1 and 11
 
 
 //FIX LATER
-
-// if (gameState.dealt === false){
-//   adjustWinnings()
-// }
 
 // adjustWinnings(){
 //   if (loss === true){
@@ -126,30 +202,6 @@ let changingNum       //variable to allow aces to change between 1 and 11
 //   }
 // }
 
-
-
-
-
-//functions for later user
-
-    //Make face cards have a numeric value
-function cardToValue(card){
-  if (card === 'ACE'){
-      if (aceLow == true){
-        return 1
-      } else {
-        return 11
-      } 
-  }
-  else if (card === 'KING' || card === 'QUEEN' || card === 'JACK'){
-    return 10
-  }
-  else {
-    return Number(card)
-  }
-}
-
-  //update all-time bet scores
 
 
 
@@ -181,40 +233,13 @@ function initializeBet(){
   document.querySelector('.bet').value = ''
 }
 
-  //this checks if the dealer is able to draw another card
-function robotCheckIfDraw(){
-  if (botRealScore <= 17 && (botRealArray.includes(1)) && botRealScore + 10 >= 17){
-    botDraw = false
-    dealerDraw()
-  }
-  else if (botRealScore >= 17){
-    botDraw = false
-    dealerDraw()
-  }
-  else {
-    botDraw = true
-  }
-}
-
-  //this tells the player if the dealer drew
-function dealerDraw() {
-  document.querySelector('.botDraw').innerText = 'Dealer did not draw'
-}
-
-  //shows the hidden card after the hand is over
-function showDealerCards(){
-  document.getElementById('botCardOne').classList.toggle('hidden')
-}
 
 
 
-//event listeners
 
-document.querySelector('#deal').addEventListener('click', dealCards)      //Initial deal 
-document.querySelector('.hit').addEventListener('click', getHit)          //Hit
 
-document.querySelector('#restart').addEventListener('click', playAgain)   //Reset game
-document.querySelector('.hold').addEventListener('click', compareValues)  //Player stops draws, compares score
+
+
 
 
 //eventlistener functions
@@ -223,47 +248,7 @@ document.querySelector('.hold').addEventListener('click', compareValues)  //Play
 
 
     //Give player two cards to begin with               
-function dealCards(){
-  const url = `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=4`
 
-  fetch(url)
-      .then(res => res.json()) // parse response as JSON
-      .then(data => {
-        console.log(data)
-        if (dealt === false){
-          //initializers
-            dealt = true
-            document.querySelector('.result').innerText = ''    //reset text to blank
-            initializeBet()
-
-          //player updates
-            document.querySelector('#cardOne').src = data.cards[0].image
-            document.querySelector('#cardTwo').src = data.cards[2].image
-            playerCardArray.push(cardToValue(data.cards[0].value))
-            playerCardArray.push(cardToValue(data.cards[2].value))
-
-          //bot updates
-            document.querySelector('#botCardOne').src = data.cards[1].image
-            document.querySelector('#botCardTwo').src = data.cards[3].image
-            botRealArray.push(cardToValue(data.cards[1].value))
-            botRealArray.push(cardToValue(data.cards[3].value))
-            botCardEstArray.push(cardToValue(data.cards[3].value))
-
-          //update values
-            updateScore()
-            checkLoss()
-            if(score === 21){
-              compareValues()
-              showDealerCards()
-            }
-            let element = document.getElementById('deal')
-            element.classList.toggle('hidden')
-        }
-      })
-      .catch(err => {
-          console.log(`error ${err}`)
-      });
-}
 
 
 
