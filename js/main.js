@@ -19,22 +19,46 @@ class Scores {  //scores for user and dealer established here
   get score(){
     return this.cardArray.reduce((accum, card) => accum + card, 0)  //reduce array to a score
   }
-  changeAce(){
-
-  }
 }
 
 class Dealer extends Scores{  //give dealer their own properties and methods in addition to the scores
   constructor(){
     super()
     this.draw = true                               //boolean to allow bot to draw a card depending on score
+    this.dealt = false
   }
   get estimatedScore(){ //displays value of dealer's shown cards
-    return this.cardArray.slice(1).reduce((accum,card) => accum + card, 0)  
+    return this.cardArray.slice(1).reduce((accum,card) => accum + card, 1)  
   }
   get estimatedArray() { //removes invisible card from array
     this.cardArray.shift()
-    }   
+  }   
+  dealCards(){
+      fetch(`https://deckofcardsapi.com/api/deck/${gameState.deckId}/draw/?count=4`)
+      .then(res => res.json()) // parse response as JSON
+      .then(data => {
+        console.log(data)
+          //initializers
+            document.querySelector('.result').innerText = ''    //reset text to blank
+          //player updates
+            document.querySelector('#cardOne').src = data.cards[0].image
+            document.querySelector('#cardTwo').src = data.cards[2].image
+            user.cardArray.push(gameState.cardToValue(data.cards[0].value))
+            user.cardArray.push(gameState.cardToValue(data.cards[2].value))
+          //bot updates
+            document.querySelector('#botCardOne').src = data.cards[1].image
+            document.querySelector('#botCardTwo').src = data.cards[3].image
+            dealer.cardArray.push(gameState.cardToValue(data.cards[1].value))
+            dealer.cardArray.push(gameState.cardToValue(data.cards[3].value))
+          //update values
+            gameState.updateScore()
+            gameState.dealElement.classList.toggle('hidden')
+        }
+      )
+      .catch(err => {
+      console.log(`error ${err}`)
+      })
+    }
 }
 
 //ADD TO DEALER OBJECTS 
@@ -79,7 +103,6 @@ class Player extends Scores{  //give player their own properties and methods in 
 class GameEngine { //establishes baseline rules for the game state
   constructor() {
     this.deckId 
-    this.dealt = false
     this.aceValue = 1
     this.dealElement = document.getElementById('deal')
   }
@@ -114,34 +137,6 @@ class GameEngine { //establishes baseline rules for the game state
       gameState.updateScore()
     }
   }
-  dealCards(){
-    fetch(`https://deckofcardsapi.com/api/deck/${gameState.deckId}/draw/?count=4`)
-      .then(res => res.json()) // parse response as JSON
-      .then(data => {
-        console.log(data)
-        if (gameState.dealt === false){
-          //initializers
-            gameState.dealt = true
-            document.querySelector('.result').innerText = ''    //reset text to blank
-          //player updates
-            document.querySelector('#cardOne').src = data.cards[0].image
-            document.querySelector('#cardTwo').src = data.cards[2].image
-            user.cardArray.push(gameState.cardToValue(data.cards[0].value))
-            user.cardArray.push(gameState.cardToValue(data.cards[2].value))
-          //bot updates
-            document.querySelector('#botCardOne').src = data.cards[1].image
-            document.querySelector('#botCardTwo').src = data.cards[3].image
-            dealer.cardArray.push(gameState.cardToValue(data.cards[1].value))
-            dealer.cardArray.push(gameState.cardToValue(data.cards[3].value))
-          //update values
-            gameState.updateScore()
-            gameState.dealElement.classList.toggle('hidden')
-        }
-      })
-      .catch(err => {
-      console.log(`error ${err}`)
-      })
-  }
 }
 
 fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1' )   //Initial API Fetching, deck ID to use for remainder of game
@@ -159,7 +154,7 @@ const dealer = new Dealer()
 
 
 //event listeners
-document.querySelector('#deal').addEventListener('click', gameState.dealCards)      //Initial deal
+document.querySelector('#deal').addEventListener('click', dealer.dealCards)      //Initial deal
 document.querySelector('.aceToggle').addEventListener('click', gameState.changeAce) //change ace value
 
  
