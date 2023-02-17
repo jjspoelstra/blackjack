@@ -1,13 +1,14 @@
 //to do: 
 
-//bot 1st card will sometimes not return to hidden on restart
-//bot will not auto-lose when they bust
-//player can click hold over and over and bet will continue reapplying
-//holding and coming up with a tie results in a player win
-//aces confuse dealer, will draw and then lose on 7-A-A because it counts as 9 instead of 19.
-//dealer will draw on 17 when they have a lower score
+//restart button won't show sometimes
 
-//eventListeners
+
+//get winnings history
+if (!localStorage.getItem('winnings')){
+  localStorage.setItem('winnings', 0)
+} else {
+  document.querySelector('.winnings').innerText = `Winnings: $${localStorage.getItem('winnings')}`
+}
 
 
 //objects
@@ -32,13 +33,12 @@ class Dealer extends Scorer{  //give dealer their own properties and methods in 
     return this.cardArray.slice(1).reduce((accum,card) => accum + card, 1)  
   } 
   get drawState(){
-    if (this.score <= 17 || (this.cardArray.includes(1) && this.score + 10 >= 17 && this.score < 17)){   //DOUBLE CHECK ACE RULES FOR DEALER
+    if (this.score < 17 || (this.cardArray.includes(1) && this.score + 10 < 17)){   //DOUBLE CHECK ACE RULES FOR DEALER
       return this.draw
     } else {
       return false
     }
   }
-
   dealCards(){
       dealer.dealt = true
       fetch(`https://deckofcardsapi.com/api/deck/${gameState.deckId}/draw/?count=4`)
@@ -67,7 +67,6 @@ class Dealer extends Scorer{  //give dealer their own properties and methods in 
       console.log(`error ${err}`)
       })
     }
-
   hit(){
     const url = `https://deckofcardsapi.com/api/deck/${gameState.deckId}/draw/?count=2`
       fetch(url)
@@ -113,7 +112,7 @@ class Player extends Scorer{  //give player their own properties and methods in 
     this.outcome = undefined                             //won or lost?
   }
   bet(){
-    this.betAmount = `$${document.querySelector('.bet').value}`
+    this.betAmount = `${+document.querySelector('.bet').value}`
     document.querySelector('.wagered').innerText = `Bet: ${this.betAmount}`
   }
   stand(){
@@ -130,7 +129,6 @@ class GameEngine { //establishes baseline rules for the game state
     this.dealElement = document.getElementById('deal')
     this.hiddenCard = document.getElementById('botCardOne').classList
   }
-
   cardToValue(card){ //Make face cards have a numeric value
   if (card === 'ACE'){
       return this.aceValue === 1 ? 1 : 11
@@ -140,7 +138,6 @@ class GameEngine { //establishes baseline rules for the game state
       return Number(card)
       }
   }
-
   updateScore(){
     document.querySelector('.handScore').innerText = user.score
     document.querySelector('.dealerScore').innerText = `Minimum ${dealer.estimatedScore}`
@@ -153,22 +150,20 @@ class GameEngine { //establishes baseline rules for the game state
     // }
     gameState.checkWin()
   }
-
   changeAce(){ //change whether ace is equal to 1 or 11. Default value is TRUE
-    if (this.aceValue = 1){
-      this.aceValue = 11
+    if (gameState.aceValue === 1){
+      gameState.aceValue = 11
       document.querySelector('.aceToggle').innerText = 'Ace is High'
       user.cardArray[user.cardArray.indexOf(1)] = 11
       gameState.updateScore()
     }
     else {
-      this.aceValue = 1
+      gameState.aceValue = 1
       document.querySelector('.aceToggle').innerText = 'Ace is Low'
       user.cardArray[user.cardArray.indexOf(11)] = 1
       gameState.updateScore()
     }
   }
-
   checkWin(){
     if (user.score > 21){
       user.outcome = 'loss'
@@ -177,7 +172,18 @@ class GameEngine { //establishes baseline rules for the game state
       this.checkWinnings()
     } 
     else if (dealer.score === 11 && dealer.cardArray.includes(1)){
-      
+      user.outcome = 'loss'
+      dealer.cardArray.push(10)
+      this.hiddenCard.toggle('hidden')
+      document.querySelector('.dealerScore').innerText = dealer.score
+      this.checkWinnings()
+    }
+    else if (user.score === 11 && user.cardArray.includes(1)){
+      user.outcome = 'win'
+      user.score += 10
+      this.hiddenCard.toggle('hidden')
+      document.querySelector('.dealerScore').innerText = dealer.score
+      this.checkWinnings()
     }
     else if (user.score === 21 && dealer.score != 21){
       user.outcome = 'win'
@@ -210,28 +216,29 @@ class GameEngine { //establishes baseline rules for the game state
       this.checkWinnings()
     }
   }
-
   checkWinnings(){
     if (user.outcome === 'win'){
+      document.getElementById('restart').classList.toggle('hidden')
+      document.getElementById('hold').classList.toggle('hidden')
       document.querySelector('.result').innerText = `You won $${user.betAmount}.`
-      winnings += Number(bet)
+      user.winnings += Number(user.betAmount)
       document.querySelector('.winnings').innerText = `Winnings: $${user.winnings}`
-      localStorage.setItem('winnings', winnings.toString()) 
+      localStorage.setItem('winnings', user.winnings.toString()) 
     }
     else if (user.outcome === 'loss'){
+      document.getElementById('restart').classList.toggle('hidden')
+      document.getElementById('hold').classList.toggle('hidden')
       document.querySelector('.result').innerText = `You lost $${user.betAmount}.`
-      winnings -= Number(bet)
+      user.winnings -= Number(user.betAmount)
       document.querySelector('.winnings').innerText = `Winnings: $${user.winnings}`
-      localStorage.setItem('winnings', winnings.toString()) 
+      localStorage.setItem('winnings', user.winnings.toString()) 
     }
     else if (user.outcome === 'tie'){
+      document.getElementById('restart').classList.toggle('hidden')
+      document.getElementById('hold').classList.toggle('hidden')
       document.querySelector('.result').innerText = `You tied.`
     }
-    else {
-      alert('there was an error')
-    }
   }
-
   playAgain(){  //restart game
     location.reload()
   }
@@ -257,7 +264,7 @@ document.querySelector('#deal').addEventListener('click', dealer.dealCards)     
 document.querySelector('.aceToggle').addEventListener('click', gameState.changeAce) //change ace value
 document.querySelector('#restart').addEventListener('click', gameState.playAgain)   //Reset game
 document.querySelector('.hit').addEventListener('click', dealer.hit)          //Hit
-document.querySelector('.hold').addEventListener('click', user.stand)   //Player stops draws, compares score
+document.querySelector('#hold').addEventListener('click', user.stand)   //Player stops draws, compares score
   
 
  
