@@ -1,15 +1,18 @@
 //to do: 
 
-//restart button won't show sometimes (in these scenarios, the dealer's 1st card appears and then dissapears - so something is being triggered twice.)
+//restart button won't show sometimes (in these scenarios, the dealer's 1st card appears and then dissapears - so something is being triggered twice.) -- seems like this is a result of pressing HOLD and then the dealer draws into losing.
+
 //prevent player from clicking hold before dealing
-//
+//clicking hold sometimes does not finish the game
+//add insurance
+//add split bets
 
 
 //get winnings history
 if (!localStorage.getItem('winnings')){
   localStorage.setItem('winnings', 0)
 } else {
-  document.querySelector('.winnings').innerText = `Winnings: $${localStorage.getItem('winnings')}`
+  document.querySelector('.winnings').innerText = `Balance: $${localStorage.getItem('winnings')}`
 }
 
 
@@ -114,9 +117,9 @@ class Player extends Scorer{  //give player their own properties and methods in 
     this.outcome = undefined                             //won or lost?
   }
   bet(){
-    this.betAmount = `${+document.querySelector('.bet').value}`
-    document.querySelector('.wagered').innerText = `Bet: ${this.betAmount}`
-  }
+      this.betAmount = `${+document.querySelector('.bet').value}`
+      document.querySelector('.wagered').innerText = `Bet: $${this.betAmount}`
+    }
   stand(){
     user.draw = false
     dealer.hit()
@@ -143,9 +146,6 @@ class GameEngine { //establishes baseline rules for the game state
   updateScore(){
     document.querySelector('.handScore').innerText = user.score
     document.querySelector('.dealerScore').innerText = `Minimum ${dealer.estimatedScore}`
-    if (dealer.drawState === false){
-      document.querySelector('.botDraw').innerText = 'Dealer did not draw'
-    }
     // if(user.score === 21){
     //   compareValues()
     //   showDealerCards()
