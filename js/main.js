@@ -1,6 +1,8 @@
 //to do: 
 
-//restart button won't show sometimes
+//restart button won't show sometimes (in these scenarios, the dealer's 1st card appears and then dissapears - so something is being triggered twice.)
+//prevent player from clicking hold before dealing
+//
 
 
 //get winnings history
@@ -164,7 +166,7 @@ class GameEngine { //establishes baseline rules for the game state
       gameState.updateScore()
     }
   }
-  checkWin(){
+  checkWin(){ //cleanUP. Potentially switch-case statements. Lots of redundant code here.
     if (user.score > 21){
       user.outcome = 'loss'
       this.hiddenCard.toggle('hidden')
@@ -265,15 +267,3 @@ document.querySelector('.aceToggle').addEventListener('click', gameState.changeA
 document.querySelector('#restart').addEventListener('click', gameState.playAgain)   //Reset game
 document.querySelector('.hit').addEventListener('click', dealer.hit)          //Hit
 document.querySelector('#hold').addEventListener('click', user.stand)   //Player stops draws, compares score
-  
-
- 
-
-
-
-
-
-
-
-
-
