@@ -10,16 +10,23 @@
 /******************************************
 /* LAYOUT
 /*******************************************/
-.hand{
+.dealer, .user, .hand, .topline, footer{
   display: flex;
+  justify-content: center;
+  
 }
 
-.topline{
-  display: flex
+footer{
+  justify-content: space-evenly;
+}
+
+.tableRules{
+  text-align: center;
 }
 
 img{
   margin: 0;
+
 }
 
 .hidden{

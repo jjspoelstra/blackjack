@@ -14,48 +14,70 @@
 	<body>
 
 		<section class = topline>
-			<h1>Blackjack</h1>
-			<!-- //want this span to be in local storage -->
-			<span class = winnings>Winnings: $0</span>				
+			<h1>Blackjack</h1>			
+		</section>
+
+		<section class = gameStatus>
+
+			<section class = dealer>
+
+				<section class = hand>
+					<img id = botCardOne class = 'hidden' src = "" alt = "">
+					<img id = botCardTwo src="" alt="">
+					<img id = botCard3 src="" alt="">
+					<img id = botCard4 src="" alt="">
+				</section>
+
+				<span class = 'dealerScore'>0</span>
+			</section>
+	
+			<section class = tableRules>
+				<h1>Blackjack pays 3 to 2</h1>
+				<h2>Dealer draws on 16, stands on 17</h2>
+			</section>
+			
+			<section class = user>
+
+				<section class = userInfo>
+
+					<section class = hand>
+						<img id = cardOne src="" alt="">
+						<img id = cardTwo src="" alt="">
+						<img id = card3 src="" alt="">
+						<img id = card4 src="" alt="">
+						<img id = card5 src="" alt="">
+						<section class = 'userScore'>
+							<span class = 'handScore'>0</span>
+							<button class = aceToggle>Ace is Low</button>
+						</section>
+
+					</section>
+
+					<section class = userActions>
+						<button class = hit>Hit!</button>
+						<button id = hold class = ''>Stand</button>
+					</section>
+
+				</section>
+				
+				<h3 class = 'wagered'>Bet:</h3>
+				<h1 class = 'result'></h1>
+			</section>
+
 		</section>
 		
-
-
-		<h3 class = 'wagered'>Bet:</h3>
-		<input class = 'bet' type="money" name="" value="" placeholder="$$$">
-
 		
-
-		<h2>Let's Play!</h2>
-		<button id = 'restart' class = 'hidden'>restart</button>
-		<button id = 'deal' class = ''> Deal</button>
-
-		<section class = hand>
-			<img id = cardOne src="" alt="">
-			<img id = cardTwo src="" alt="">
-			<img id = card3 src="" alt="">
-			<img id = card4 src="" alt="">
-			<img id = card5 src="" alt="">
-			<h1 class = result></h1>
-		</section>
+		<footer>
+			<span class = winnings>Balance: $0</span>
+			<input class = 'bet' type="money" name="" value="" placeholder="$$$">
+			<button id = 'deal' class = ''> Deal</button>
+			<button id = 'restart' class = 'hidden'>restart</button>
+			<button class = 'rules'>Rules</button>
+		</footer>
 		
-		<button class = hit>Hit!</button>
-		<button class = aceToggle>Ace is Low</button>
-		<button id = hold class = ''>Hold</button>
-
-		<h3>Score</h3>
-		<span class = 'handScore'>0</span>
 		
-
-		<h3>Dealer Score</h3>
-		<span class = 'dealerScore'>0</span>
-		<section class = hand>
-			<img id = botCardOne class = 'hidden' src = "" alt = "">
-			<img id = botCardTwo src="" alt="">
-			<img id = botCard3 src="" alt="">
-			<img id = botCard4 src="" alt="">
-			<h2 class = 'botDraw'></h2>
-		</section>
+		
+		
 
 		<script type="text/javascript" src="js/main.js"></script>
 	</body>
