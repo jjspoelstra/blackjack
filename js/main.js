@@ -1,15 +1,14 @@
 //to do: 
 
-//restart button won't show sometimes (in these scenarios, the dealer's 1st card appears and then dissapears - so something is being triggered twice.) -- seems like this is a result of pressing HOLD and then the dealer draws into losing.
 
-//prevent player from clicking hold before dealing
-//clicking hold sometimes does not finish the game
+
+//prevent player from 
 //add insurance
 //add split bets
 
 
 //get winnings history
-if (!localStorage.getItem('winnings')){
+if (!localStorage.getItem('winnings') || localStorage.getItem('winnings') === 'NaN'){
   localStorage.setItem('winnings', 0)
 } else {
   document.querySelector('.winnings').innerText = `Balance: $${localStorage.getItem('winnings')}`
@@ -22,6 +21,7 @@ class Scorer {  //scores for user and dealer established here
   constructor(){
     this.cardArray = []   //for drawn cards
     this.draw = true      //determines whether they are able to draw new cards, depending on their score
+    this.aceValue = 1     //default for both user and dealer is 1
   }
   get score(){
     return this.cardArray.reduce((accum, card) => accum + card, 0)  //reduce array to a score
@@ -65,6 +65,7 @@ class Dealer extends Scorer{  //give dealer their own properties and methods in 
             dealer.cardArray.push(gameState.cardToValue(data.cards[3].value))
           //update values
             gameState.updateScore()
+            gameState.checkWin()
             gameState.dealElement.classList.toggle('hidden')
         }
       )
@@ -84,21 +85,27 @@ class Dealer extends Scorer{  //give dealer their own properties and methods in 
               document.querySelector(`#card${user.hits+2}`).src = data.cards[0].image
               user.cardArray.push(gameState.cardToValue(data.cards[0].value))
               gameState.updateScore()
+              gameState.checkWin()
                 if (dealer.drawState === true){
                   document.querySelector(`#botCard${user.hits+2}`).src = data.cards[1].image
                   dealer.cardArray.push(gameState.cardToValue(data.cards[1].value))
                   gameState.updateScore()
+                  gameState.checkWin()
                 }
             } else if (user.draw === false && dealer.drawState === true){
                 document.querySelector(`#botCard${user.hits+2}`).src = data.cards[0].image
                 dealer.cardArray.push(gameState.cardToValue(data.cards[0].value))
                 gameState.updateScore()
-                dealer.hit()
+                gameState.checkWin()
+                  if ( dealer.drawState === true){
+                    dealer.hit()
+                  }
               } else if (dealer.dealt === false){
                   document.querySelector('.result').innerText = 'Deal first!'    //reset text to blank
                 } else {
-                    gameState.checkWin()
-                  }
+                  gameState.updateScore()
+                  gameState.checkWin()
+                }
                
         })
           .catch(err => {
@@ -121,8 +128,29 @@ class Player extends Scorer{  //give player their own properties and methods in 
       document.querySelector('.wagered').innerText = `Bet: $${this.betAmount}`
     }
   stand(){
-    user.draw = false
-    dealer.hit()
+    if (dealer.dealt === false) {
+      alert ('Please place a bet and deal')
+    }
+    else {
+      user.draw = false
+      dealer.hit()
+    }
+  }
+  changeAce(){ //change whether ace is equal to 1 or 11. Default value is TRUE
+    if (user.aceValue === 1){
+      user.aceValue = 11
+      document.querySelector('.aceToggle').innerText = 'Ace is High'
+      user.cardArray[user.cardArray.indexOf(1)] = 11
+      gameState.updateScore()
+      gameState.checkWin()
+    }
+    else {
+      user.aceValue = 1
+      document.querySelector('.aceToggle').innerText = 'Ace is Low'
+      user.cardArray[user.cardArray.indexOf(11)] = 1
+      gameState.updateScore()
+      gameState.checkWin()
+    }
   }
 }
 
@@ -130,13 +158,13 @@ class Player extends Scorer{  //give player their own properties and methods in 
 class GameEngine { //establishes baseline rules for the game state
   constructor() {
     this.deckId 
-    this.aceValue = 1
+    this.aceDefault = 1
     this.dealElement = document.getElementById('deal')
     this.hiddenCard = document.getElementById('botCardOne').classList
   }
   cardToValue(card){ //Make face cards have a numeric value
   if (card === 'ACE'){
-      return this.aceValue === 1 ? 1 : 11
+      return this.aceDefault
   } else if (card === 'KING' || card === 'QUEEN' || card === 'JACK'){
       return 10
     } else {
@@ -150,21 +178,6 @@ class GameEngine { //establishes baseline rules for the game state
     //   compareValues()
     //   showDealerCards()
     // }
-    gameState.checkWin()
-  }
-  changeAce(){ //change whether ace is equal to 1 or 11. Default value is TRUE
-    if (gameState.aceValue === 1){
-      gameState.aceValue = 11
-      document.querySelector('.aceToggle').innerText = 'Ace is High'
-      user.cardArray[user.cardArray.indexOf(1)] = 11
-      gameState.updateScore()
-    }
-    else {
-      gameState.aceValue = 1
-      document.querySelector('.aceToggle').innerText = 'Ace is Low'
-      user.cardArray[user.cardArray.indexOf(11)] = 1
-      gameState.updateScore()
-    }
   }
   checkWin(){ //cleanUP. Potentially switch-case statements. Lots of redundant code here.
     if (user.score > 21){
@@ -222,7 +235,12 @@ class GameEngine { //establishes baseline rules for the game state
     if (user.outcome === 'win'){
       document.getElementById('restart').classList.toggle('hidden')
       document.getElementById('hold').classList.toggle('hidden')
+      if (user.cardArray.length === 2 && user.draw === true){
+          user.betAmount *=1.5
+          document.getElementById('blackjack').style.color = 'blue'
+      }
       document.querySelector('.result').innerText = `You won $${user.betAmount}.`
+        
       user.winnings += Number(user.betAmount)
       document.querySelector('.winnings').innerText = `Winnings: $${user.winnings}`
       localStorage.setItem('winnings', user.winnings.toString()) 
@@ -263,7 +281,7 @@ let dealer = new Dealer()
 
 //event listeners
 document.querySelector('#deal').addEventListener('click', dealer.dealCards)      //Initial deal
-document.querySelector('.aceToggle').addEventListener('click', gameState.changeAce) //change ace value
+document.querySelector('.aceToggle').addEventListener('click', user.changeAce) //change ace value
 document.querySelector('#restart').addEventListener('click', gameState.playAgain)   //Reset game
 document.querySelector('.hit').addEventListener('click', dealer.hit)          //Hit
 document.querySelector('#hold').addEventListener('click', user.stand)   //Player stops draws, compares score

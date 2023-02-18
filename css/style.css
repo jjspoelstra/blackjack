@@ -16,17 +16,20 @@
   
 }
 
+.hand{
+  height: 300px;
+}
 footer{
   justify-content: space-evenly;
 }
 
-.tableRules{
+#tableRules, .userActions{
   text-align: center;
 }
 
 img{
   margin: 0;
-
+  height: 300px;
 }
 
 .hidden{
@@ -36,3 +39,7 @@ img{
 /******************************************
 /* ADDITIONAL STYLES
 /*******************************************/
+
+body {
+  background: green;
+}
