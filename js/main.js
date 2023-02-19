@@ -1,6 +1,7 @@
 //to do: 
 
-
+//'deal' button will still show when dealer gets blackjack
+//buy-in
 //add insurance
 //add split bets
 
