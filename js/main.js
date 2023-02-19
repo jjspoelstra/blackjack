@@ -1,8 +1,6 @@
 //to do: 
 
 
-
-//prevent player from 
 //add insurance
 //add split bets
 
@@ -33,6 +31,7 @@ class Dealer extends Scorer{  //give dealer their own properties and methods in 
   constructor(){
     super()
     this.dealt = false
+    this.message = "First place a bet, then deal"
   }
   get estimatedScore(){ //displays value of dealer's shown cards
     return this.cardArray.slice(1).reduce((accum,card) => accum + card, 1)  
@@ -85,11 +84,13 @@ class Dealer extends Scorer{  //give dealer their own properties and methods in 
               document.querySelector(`#card${user.hits+2}`).src = data.cards[0].image
               user.cardArray.push(gameState.cardToValue(data.cards[0].value))
               gameState.updateScore()
-              gameState.checkWin()
                 if (dealer.drawState === true){
                   document.querySelector(`#botCard${user.hits+2}`).src = data.cards[1].image
                   dealer.cardArray.push(gameState.cardToValue(data.cards[1].value))
                   gameState.updateScore()
+                  gameState.checkWin()
+                }
+                else {
                   gameState.checkWin()
                 }
             } else if (user.draw === false && dealer.drawState === true){
@@ -100,11 +101,11 @@ class Dealer extends Scorer{  //give dealer their own properties and methods in 
                   if ( dealer.drawState === true){
                     dealer.hit()
                   }
-              } else if (dealer.dealt === false){
-                  document.querySelector('.result').innerText = 'Deal first!'    //reset text to blank
-                } else {
-                  gameState.updateScore()
-                  gameState.checkWin()
+            } else if (dealer.dealt === false){
+                alert (dealer.message)    
+            } else {
+                gameState.updateScore()
+                gameState.checkWin()
                 }
                
         })
