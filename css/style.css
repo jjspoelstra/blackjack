@@ -9,6 +9,37 @@
 
 body{
   font-family: 'Libre Baskerville', serif;
+  
+}
+
+button, .userScore, .dealerScore, input, .wagered{
+  align-items: center;
+  appearance: none;
+  background-color: #fff;
+  border-radius: 24px;
+  border-style: none;
+  box-shadow: rgba(0, 0, 0, .2) 0 3px 5px -1px,rgba(0, 0, 0, .14) 0 6px 10px 0,rgba(0, 0, 0, .12) 0 1px 18px 0;
+  box-sizing: border-box;
+  color: #3c4043;
+  cursor: pointer;
+  display: inline-flex;
+  fill: currentcolor;
+  font-size: 14px;
+  height: 40px;
+  justify-content: center;
+  letter-spacing: .25px;
+  line-height: normal;
+  max-width: 100%;
+  overflow: visible;
+  padding: 2px 24px;
+  position: relative;
+  text-align: center;
+  text-transform: none;
+  transition: box-shadow 280ms cubic-bezier(.4, 0, .2, 1),opacity 15ms linear 30ms,transform 270ms cubic-bezier(0, 0, .2, 1) 0ms;
+  user-select: none;
+  width: auto;
+  will-change: transform,opacity;
+  z-index: 0;
 }
 
 /******************************************
@@ -20,7 +51,7 @@ body{
 }
 
 .hand{
-  height: 350px;
+  height: 325px;
   width: 300px;
   justify-items: center;
 }
@@ -35,7 +66,7 @@ footer{
 img{
   margin: 0;
   height: 300px;
-  position: fixed;
+  position: absolute;
 }
 
 #cardOne, #botCardOne{
@@ -61,21 +92,35 @@ img{
 } 
 
 .result{
-  position: fixed;
-  transform: translate(500px)
+  position: absolute;
+  transform: translate(-500px)
 }
 
 .userScore, .dealerScore{
-  position: fixed;
-  transform: translate(350px)
+  position: absolute;
+  transform: translate(200px, 2px)
 }
+
+.aceToggle{
+  transform: translate(24px);
+}
+
 .wagered{
-  position: fixed;
-  transform: translate(320px)
+  position: absolute;
+  transform: translate(-500px, 50px)
+}
+
+.bet{
+  position: absolute;
+  transform: translate(-500px, 110px)
 }
 
 .hidden{
   display: none;
+}
+
+.userActions{
+  height: 50px
 }
 
 /******************************************

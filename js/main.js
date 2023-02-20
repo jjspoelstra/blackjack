@@ -246,7 +246,7 @@ class GameEngine { //establishes baseline rules for the game state
       document.getElementById('hit').classList.toggle('hidden')
       if (user.cardArray.length === 2 && user.draw === true){
           user.betAmount *=1.5
-          document.getElementById('blackjack').style.color = 'blue'
+          document.getElementById('blackjack').style.color = 'red'
       }
       document.querySelector('.result').innerText = `You won $${user.betAmount}.`
         
