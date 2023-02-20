@@ -55,12 +55,16 @@ class Dealer extends Scorer{  //give dealer their own properties and methods in 
             document.querySelector('.result').innerText = ''    //reset text to blank
           //player updates
             document.querySelector('#cardOne').src = data.cards[0].image
-            document.querySelector('#cardTwo').src = data.cards[2].image
+            setTimeout(function(){
+              document.querySelector('#cardTwo').src = data.cards[2].image
+            }, 500)
             user.cardArray.push(gameState.cardToValue(data.cards[0].value))
             user.cardArray.push(gameState.cardToValue(data.cards[2].value))
           //bot updates
             document.querySelector('#botCardOne').src = data.cards[1].image
-            document.querySelector('#botCardTwo').src = data.cards[3].image
+            setTimeout(function(){
+              document.querySelector('#botCardTwo').src = data.cards[3].image
+            }, 1000)
             dealer.cardArray.push(gameState.cardToValue(data.cards[1].value))
             dealer.cardArray.push(gameState.cardToValue(data.cards[3].value))
           //update values
@@ -86,7 +90,9 @@ class Dealer extends Scorer{  //give dealer their own properties and methods in 
               user.cardArray.push(gameState.cardToValue(data.cards[0].value))
               gameState.updateScore()
                 if (dealer.drawState === true){
+                  setTimeout(function(){
                   document.querySelector(`#botCard${user.hits+2}`).src = data.cards[1].image
+                }, 500)
                   dealer.cardArray.push(gameState.cardToValue(data.cards[1].value))
                   gameState.updateScore()
                   gameState.checkWin()
@@ -237,6 +243,7 @@ class GameEngine { //establishes baseline rules for the game state
     if (user.outcome === 'win'){
       document.getElementById('restart').classList.toggle('hidden')
       document.getElementById('hold').classList.toggle('hidden')
+      document.getElementById('hit').classList.toggle('hidden')
       if (user.cardArray.length === 2 && user.draw === true){
           user.betAmount *=1.5
           document.getElementById('blackjack').style.color = 'blue'
@@ -250,6 +257,7 @@ class GameEngine { //establishes baseline rules for the game state
     else if (user.outcome === 'loss'){
       document.getElementById('restart').classList.toggle('hidden')
       document.getElementById('hold').classList.toggle('hidden')
+      document.getElementById('hit').classList.toggle('hidden')
       document.querySelector('.result').innerText = `You lost $${user.betAmount}.`
       user.winnings -= Number(user.betAmount)
       document.querySelector('.winnings').innerText = `Winnings: $${user.winnings}`
@@ -258,6 +266,7 @@ class GameEngine { //establishes baseline rules for the game state
     else if (user.outcome === 'tie'){
       document.getElementById('restart').classList.toggle('hidden')
       document.getElementById('hold').classList.toggle('hidden')
+      document.getElementById('hit').classList.toggle('hidden')
       document.querySelector('.result').innerText = `You tied.`
     }
   }
@@ -285,5 +294,5 @@ let dealer = new Dealer()
 document.querySelector('#deal').addEventListener('click', dealer.dealCards)      //Initial deal
 document.querySelector('.aceToggle').addEventListener('click', user.changeAce) //change ace value
 document.querySelector('#restart').addEventListener('click', gameState.playAgain)   //Reset game
-document.querySelector('.hit').addEventListener('click', dealer.hit)          //Hit
+document.querySelector('#hit').addEventListener('click', dealer.hit)          //Hit
 document.querySelector('#hold').addEventListener('click', user.stand)   //Player stops draws, compares score
