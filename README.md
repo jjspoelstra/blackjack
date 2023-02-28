@@ -1,5 +1,5 @@
 # Blackjack!
-This project is a fairly simple blackjack game for one player. The game keeps track of all-time balance.
+This project is a fairly simple blackjack game for one player. The game keeps track of your balance over time.
 
 <img src="https://github.com/jjspoelstra/jjspoelstra/raw/main/images/gifBlackjack.gif" />
 
